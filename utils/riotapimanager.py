@@ -3,7 +3,7 @@ import json
 import time
 import collections
 
-from typing import List, Optional
+from typing import Optional
 
 OFFSET = 2 # security to avoid error 429
 BYPASS_FIRST_WAIT = False
@@ -26,9 +26,9 @@ class ApiErrorServer(ApiError):
 class ApiError404(ApiErrorUrl):
     pass
 
-class ApiClient(object):
+class RiotApiClient(object):
     """
-    Class for interacting with the api : it will handle requests
+    Class for interacting with the riot api : it will handle requests
     """
 
     def __init__(
@@ -48,7 +48,7 @@ class ApiClient(object):
         freshapi: bool
     ):
 
-        """ create the queue for managing rate-limit"""
+        """ creates the queue for managing rate-limit"""
 
         url = test_url + '?api_key=' + self.api_key
         resp = requests.get(url)
@@ -78,8 +78,8 @@ class ApiClient(object):
     def request_url(
         self,
         url: str,
-        params=None,
-        ntries=3
+        params: Optional[dict] = None,
+        ntries: Optional[int] = 3
     ):
         """
         Request an url with additional params in a robust way
@@ -88,7 +88,7 @@ class ApiClient(object):
         Args :
             - url : string
             - params : dict
-            - ntries : int
+            - ntries : int (numbers of tries)
 
         Return :
         A json with the response, or an APIError
@@ -136,11 +136,7 @@ class ApiClient(object):
             wait = self.resets[t][0] + t + OFFSET - time.time()
 
         # Request and response
-        url += '?api_key=' + self.api_key
-        if params:
-            for key, value in params.items():
-                url += '&%s=%s' % (key, value)
-        resp = requests.get(url)
+        resp = requests.get(url, headers={"X-Riot-Token": self.api_key}, params=params)
 
         # update reset state with time of current request
         for t in self.resets:
