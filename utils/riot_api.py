@@ -1,16 +1,30 @@
-from .apimanager import ApiManager
+from .apimanager import RiotApiManager
+from typing import Optional, list
 
-class Riot_API():
+class Riot_API(object):
     """
     Class for getting information from riot api
     """
 
-    def __init__(self, api_key, freshapi=False, ntries=3, verbose=False):
+    def __init__(
+        self,
+        api_key: str,
+        freshapi: Optional[bool] = False,
+        ntries: Optional[int] = 3,
+        verbose: Optional[bool] = False
+    ):
 
-        self.apimanager = ApiManager(api_key, freshapi, verbose)
+        self.apimanager = RiotApiManager(api_key, freshapi, verbose)
         self.ntries = ntries
 
-    def get_players_division(self, region, queue, tier, division, max_players):
+    def get_players_division(
+        self,
+        region: str,
+        queue: str,
+        tier: str,
+        division: str,
+        max_players: int):
+
         """
         Provide a list of players in a division inside a tier
         Uses the entries with summonerId, but it is missing accountId
@@ -44,7 +58,12 @@ class Riot_API():
 
         return res[:max_players]
 
-    def get_accountid(self, region, summonerid, additional=None):
+    def get_accountid(
+        self,
+        region: str,
+        summonerid: str,
+        additional: Optional[list]=None
+    ):
         """
         Get accountid (+ additional data such as profileiconId if necessary from summonerId)
         """
@@ -63,7 +82,13 @@ class Riot_API():
                 res[i] = response[i]
         return res
 
-    def get_matchlist_account_timeinfo(self, account_id, region, timeinfo, queue):
+    def get_matchlist_account_timeinfo(
+        self,
+        account_id: str,
+        region: str,
+        timeinfo: Optional[dict]=None,
+        queue: int
+    ):
         """
         Matchlist by account  + Region
         If timeinfo is None all games, else specify 'beginTime', 'endTime' in timeinfo
@@ -87,7 +112,13 @@ class Riot_API():
         return res
 
     ## FOR NOW WE ASSUME SOMEONE CANNOT PLAY MORE THAN 1 HUNDRED GAMES A WEEK
-    def get_matchlist_accountid(self, account_id, region, times=None, queue=420):
+    def get_matchlist_accountid(
+        self,
+        account_id: str,
+        region: str,
+        times=,
+        queue=420
+    ):
         """
         Get matchlist of an account
         Args :
@@ -106,14 +137,24 @@ class Riot_API():
                 res += self.get_matchlist_account_timeinfo(account_id, region, timeinfo, queue)
             return res
 
-    def get_matchinfo(self, match_id, region):
+    def get_matchinfo(
+        self,
+        match_id: int,
+        region: str
+    ):
+        """ Get information on a specific match """
 
         url = 'https://' + region + '.api.riotgames.com/lol/match/v4/matches/'
         url += str(match_id)
         response = self.apimanager.request_url(url)
         return response
 
-    def get_matchtimeline(self, match_id, region):
+    def get_matchtimeline(
+        self,
+        match_id: int,
+        region: str
+    ):
+        """ Get timeline of a specific match """
 
         url = 'https://' + region + '.api.riotgames.com/lol/match/v4/timelines/by-match/'
         url += str(match_id)
