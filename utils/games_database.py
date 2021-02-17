@@ -48,7 +48,7 @@ class games_db():
 
             for accountid, tier, division in zip(tqdm(player_db['accountId']), player_db['tier'], player_db['rank']):
 
-                match_list = self.api.get_matchlist_accountid(accountid, self.region, timestamped_patches[patch], queue)
+                match_list = self.api.get_matchlist_accountid(accountid, self.region, queue, timestamped_patches[patch])
 
                 # no matchlist we just skip
                 if match_list is None:

@@ -1,73 +1,68 @@
 from utils.player_database import player_db
 from utils.games_database import games_db
 import multiprocessing
+from configparser import ConfigParser
 
-key = 'RGAPI-d939b194-0b19-42e8-8acc-65276fe9d11f'
+config = ConfigParser()
+config.read("config.ini")
 
-path2db =  '/Users/ltakumi/Documents/data/league/db/'
-path2games = '/Users/ltakumi/Documents/data/league/games/'
-
+general = config['GENERAL']
+target = config['TARGET']
 
 
 def get_player_db(region):
+    """ Find list of players for a specific region """
 
-    a = player_db(key, path2db + region + '_playerdb.csv', region, freshapi=True)
-
-    # divisions = ['CHALLENGER_I', 'GRANDMASTER_I', 'MASTER_I']
-    # a.update_players_db(divisions=divisions, max_players=500)
-
-    divisions = []
-    # divisions = ['DIAMOND_'+str(i) for i in ['I', 'II', 'III', 'IV']]
-    # divisions += ['PLATINUM_'+str(i) for i in ['I', 'II', 'III', 'IV']]
-    divisions += ['GOLD_'+str(i) for i in ['I', 'II', 'III', 'IV']]
-    divisions += ['SILVER_'+str(i) for i in ['I', 'II', 'III', 'IV']]
-    divisions += ['BRONZE_'+str(i) for i in ['I', 'II', 'III', 'IV']]
-    divisions += ['IRON_'+str(i) for i in ['I', 'II', 'III', 'IV']]
-    a.update_players_db(divisions=divisions, max_players=150)
-
+    players = player_db(general['api_key'], general['path2db'] + region + '_playerdb.csv', region, freshapi=True)
+    players.update_players_db(divisions=target['high_elo'], max_players=target['high_elo_players'])
+    players.update_players_db(divisions=target['low_elo'], max_players=target['low_elo_players'])
     return None
 
 def get_games_db(region):
-    a = games_db(key, path2db + region + '_games.csv', region, freshapi=True)
-    a.update_games(path2db + region + '_playerdb.csv', ['10.18']) # done
+    """ Find list of games for a specific region """
+
+    games = games_db(key, general['path2db'] + region + '_gamesdb.csv', region, freshapi=True)
+    games.update_games(general['path2db'] + region + '_playerdb.csv', target['patches'])
     return None
 
 def dl_games_db(region):
-    a = games_db(key, path2db + region + '_games.csv', region, freshapi=True)
-    a.download_games(path2games, index=None, gameinfo=True, timeline=True)
+    """ Download games for a specific region """
+
+    games = games_db(key, general['path2db']+ region + '_gamesdb.csv', region, freshapi=True)
+    games.download_games(general['path2games'], index=None, gameinfo=target['gameinfo'], timeline=target['timeline'])
     return None
 
 def get_players():
-
-    # regions = ['ru', 'kr', 'oc1',  'jp1', 'na1', 'eun1', 'euw1', 'tr1', 'la1', 'la2']
-    regions = ['ru', 'kr', 'oc1',  'jp1', 'na1', 'eun1', 'tr1', 'la1', 'la2']
+    """ Find list of players for all regions in parallel """
 
     keprocs = []
-    for region in regions:
+    for region in target['regions']:
         keprocs.append(multiprocessing.Process(target=get_player_db, args=(region,)))
         keprocs[-1].start()
 
 def get_games():
-
-    regions = ['ru', 'kr', 'oc1',  'jp1', 'na1', 'eun1', 'tr1', 'la1', 'la2']
+    """ Find list of players for all regions in parallel """
 
     keprocs = []
-    for region in regions:
+    for region in target['regions']:
         keprocs.append(multiprocessing.Process(target=get_games_db, args=(region,)))
         keprocs[-1].start()
 
 def dl_games():
-
-    regions = ['ru', 'kr', 'oc1',  'jp1', 'na1', 'eun1', 'euw1', 'tr1', 'la1', 'la2']
+    """  Download games for all regions in parallel """
 
     keprocs = []
-    for region in regions:
+    for region in target['regions']:
         keprocs.append(multiprocessing.Process(target=dl_games_db, args=(region,)))
         keprocs[-1].start()
 
-
-
 if __name__ == '__main__':
-    # get_players()
-    # get_games()
-    dl_games()
+
+    if general['findplayers']:
+        get_players()
+
+    if general['findgames']:
+        get_games()
+
+    if general['dlgames']:
+        dl_games()

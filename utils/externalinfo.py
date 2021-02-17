@@ -3,10 +3,15 @@ import json
 import time
 import random
 
+from typing import Optional
+
+# patch information is not accessible directly from riot api
 path2patches = 'https://raw.githubusercontent.com/CommunityDragon/Data/master/patches.json'
 
 def request_patch(ntries):
-
+    """
+    Request all patches with timestamps from the communitydragon datasource
+    """
     error_code = []
     for i in range(ntries):
         resp = requests.get(path2patches)
@@ -18,8 +23,26 @@ def request_patch(ntries):
     print('Error fetching patch informations', error_code)
     return None
 
+def get_timestamped_patches(
+    region: str,
+    patches: Optional[list] = None,
+    ntries: Optional[int] = 10,
+    unit: Optional[str] = 's'):
 
-def get_timestamped_patches(region, patches=None, ntries=10, unit='s'):
+    """
+    Extract time stamps for patches adapted to a specific region
+
+    Args :
+        - region : string
+        - patches : list of patches to timestamp. If patches is None,
+        all patches are considered
+        - ntries : number of tries to query timestamp database
+        - unit : Timestamp unit, base is s
+
+    Return :
+    A dictionary with key : [begin timestamp, end timestamp]
+
+    """
 
     all_patches = request_patch(ntries)
 

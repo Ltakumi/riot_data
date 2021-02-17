@@ -1,5 +1,5 @@
-from .apimanager import RiotApiManager
-from typing import Optional, list
+from .riotapimanager import RiotApiClient
+from typing import Optional
 
 class Riot_API(object):
     """
@@ -14,7 +14,7 @@ class Riot_API(object):
         verbose: Optional[bool] = False
     ):
 
-        self.apimanager = RiotApiManager(api_key, freshapi, verbose)
+        self.apimanager = RiotApiClient(api_key, freshapi, verbose)
         self.ntries = ntries
 
     def get_players_division(
@@ -62,7 +62,7 @@ class Riot_API(object):
         self,
         region: str,
         summonerid: str,
-        additional: Optional[list]=None
+        additional: Optional[list] = None
     ):
         """
         Get accountid (+ additional data such as profileiconId if necessary from summonerId)
@@ -86,8 +86,8 @@ class Riot_API(object):
         self,
         account_id: str,
         region: str,
-        timeinfo: Optional[dict]=None,
-        queue: int
+        queue: int,
+        timeinfo: Optional[dict] = None,
     ):
         """
         Matchlist by account  + Region
@@ -100,7 +100,6 @@ class Riot_API(object):
         while findmore:
             url = 'https://' + region + '.api.riotgames.com/lol/match/v4/matchlists/by-account/'
             url += account_id
-
             timeinfo['beginIndex'] = beginIndex
             games = self.apimanager.request_url(url, timeinfo)
             if games is None:
@@ -116,25 +115,25 @@ class Riot_API(object):
         self,
         account_id: str,
         region: str,
-        times=,
-        queue=420
+        queue: Optional[int] = 420,
+        times: Optional[list] = None,
     ):
         """
         Get matchlist of an account
         Args :
             - account_id (encrypted)
-            - timelimit : timestamp(ms) (adapted to region)
+            - times: list of two timestamp for begin/end in ms (adapted to region)
         """
 
         if times is None:
-            return self.get_matchlist_account_timeinfo(account_id, region, {}, queue)
+            return self.get_matchlist_account_timeinfo(account_id, region, queue, {})
         else:
             assert len(times) == 2
             res  = []
             weekly = [i for i in range(times[0], times[1], 24*7*60*60*1000)] + [times[1]]
             for i in range(len(weekly)-1):
                 timeinfo = {'beginTime':weekly[i], 'endTime':weekly[i+1]}
-                res += self.get_matchlist_account_timeinfo(account_id, region, timeinfo, queue)
+                res += self.get_matchlist_account_timeinfo(account_id, region, queue, timeinfo)
             return res
 
     def get_matchinfo(
