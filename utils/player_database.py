@@ -4,6 +4,7 @@ import pandas as pd
 import time
 from tqdm import tqdm
 from .riot_api import Riot_API
+import json
 
 DEFAULTKEEP = ['accountId', 'summonerId', 'summonerName', 'tier',
                'rank', 'leaguePoints', 'wins', 'losses', 'updated']
@@ -42,11 +43,9 @@ class player_db():
 
         for division, max_player in zip(divisions, max_players):
             tier, division = division.split('_')
-            print('Region:', self.region, 'Tier:', tier, 'Division:', division)
 
             # get player list
             player_list = self.api.get_players_division(self.region, queue, tier, division, max_player)
-
             for player in tqdm(player_list):
                 idx = self.db.index[self.db['summonerId']==player['summonerId']]
 
